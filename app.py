@@ -4,7 +4,7 @@ import io
 
 # Initialize Roboflow (once)
 rf = Roboflow(api_key=st.secrets["ROBOFLOW_API_KEY"])
-project = rf.workspace().project("your-project-name")
+project = rf.workspace().project("flower-counter")
 model = project.version(1).model
 
 st.title("📸 Image Detection with Roboflow")
