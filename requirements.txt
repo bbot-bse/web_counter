@@ -1,0 +1,4 @@
+streamlit
+roboflow
+Pillow
+requests
