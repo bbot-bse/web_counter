@@ -3,3 +3,4 @@ roboflow
 sahi
 Pillow
 requests
+pandas
