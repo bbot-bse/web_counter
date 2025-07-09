@@ -15,8 +15,8 @@ confidence_threshold = st.slider(
 
 # Initialize Roboflow model
 rf = Roboflow(api_key=st.secrets["ROBOFLOW_API_KEY"])
-project = rf.workspace().project("your-project-name")     # ← Replace
-model = project.version(1).model                          # ← Replace if needed
+project = rf.workspace().project("flower-counter")     # ← Replace
+model = project.version(11).model                          # ← Replace if needed
 
 # Upload image
 uploaded_file = st.file_uploader("Choose an image", type=["jpg", "jpeg", "png"])
