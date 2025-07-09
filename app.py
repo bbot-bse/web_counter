@@ -13,7 +13,7 @@ confidence_threshold = st.slider("Confidence Threshold", 0.0, 1.0, 0.3, 0.05)
 
 # Roboflow config
 ROBOFLOW_API_KEY = st.secrets["ROBOFLOW_API_KEY"]
-MODEL_ENDPOINT = "flower-counter/11"  # ← replace with your Roboflow model/version
+MODEL_ENDPOINT = "flower-counter/12"  # ← replace with your Roboflow model/version
 API_URL = f"https://detect.roboflow.com/{MODEL_ENDPOINT}?api_key={ROBOFLOW_API_KEY}"
 
 # Upload image
