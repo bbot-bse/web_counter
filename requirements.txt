@@ -2,3 +2,4 @@ streamlit
 roboflow
 Pillow
 requests
+opencv-python
