@@ -35,6 +35,9 @@ if uploaded_file:
                 files={"file": buffered.getvalue()},
                 headers={"Content-Type": "application/x-www-form-urlencoded"}
             )
+            
+            st.write("API Status Code:", response.status_code)
+            st.json(response.json())
 
             result = response.json()
             predictions = result.get("predictions", [])
