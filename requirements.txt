@@ -1,6 +1,5 @@
 streamlit
 roboflow
+sahi
 Pillow
 requests
-opencv-python-headless
-sahi
