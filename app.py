@@ -50,7 +50,7 @@ if uploaded_file:
                     cls, conf = pred["class"], pred["confidence"]
                     x1, y1 = x - w / 2, y - h / 2
                     x2, y2 = x + w / 2, y + h / 2
-                    draw.rectangle([x1, y1, x2, y2], outline="lime", width=3)
+                    draw.rectangle([x1, y1, x2, y2], outline="red", width=5)
                     draw.text((x1, y1 - 10), f"{cls} ({conf:.2f})", fill="lime", font=font)
                     label_counts[cls] = label_counts.get(cls, 0) + 1
 
