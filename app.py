@@ -1,67 +1,64 @@
 import streamlit as st
 from roboflow import Roboflow
 from PIL import Image, ImageDraw, ImageFont
-import numpy as np
-from io import BytesIO
 import pandas as pd
+from io import BytesIO
 
-# SAHI imports
-from sahi.model import RemoteInferenceModel
-from sahi.predict import get_sliced_prediction
+st.set_page_config(page_title="Roboflow Detector", layout="centered")
+st.title("📸 Roboflow Object Detection")
+st.write("Upload an image and adjust the confidence threshold below:")
 
-st.set_page_config(page_title="Roboflow + SAHI", layout="centered")
-st.title("📸 Roboflow Detection with SAHI (No OpenCV)")
-st.write("Upload an image and see detections using sliced inference.")
-
-# Load Roboflow model
-rf = Roboflow(api_key=st.secrets["ROBOFLOW_API_KEY"])
-project = rf.workspace().project("flower-counter")  # ← Replace with your project
-model = project.version(11).model                      # ← Replace with your version
-
-# Wrap in SAHI RemoteInferenceModel
-sahi_model = RemoteInferenceModel(
-    model_type="yolov8",
-    endpoint_url=model.url,
-    confidence_threshold=0.3,
-    device="cpu"
+# Slider for confidence threshold
+confidence_threshold = st.slider(
+    "Confidence Threshold", min_value=0.0, max_value=1.0, value=0.3, step=0.05
 )
 
-uploaded = st.file_uploader("Choose an image", type=["jpg", "jpeg", "png"])
-if uploaded:
-    image_pil = Image.open(uploaded).convert("RGB")
+# Initialize Roboflow model
+rf = Roboflow(api_key=st.secrets["ROBOFLOW_API_KEY"])
+project = rf.workspace().project("your-project-name")     # ← Replace
+model = project.version(1).model                          # ← Replace if needed
+
+# Upload image
+uploaded_file = st.file_uploader("Choose an image", type=["jpg", "jpeg", "png"])
+if uploaded_file:
+    image_pil = Image.open(uploaded_file).convert("RGB")
     st.image(image_pil, caption="Uploaded Image", use_container_width=True)
+
+    # Convert to byte stream
+    img_bytes = BytesIO()
+    image_pil.save(img_bytes, format="JPEG")
+    img_bytes.seek(0)
 
     with st.spinner("Running detection..."):
         try:
-            prediction = get_sliced_prediction(
-                image_pil,
-                detection_model=sahi_model,
-                slice_height=640,
-                slice_width=640,
-                overlap_height_ratio=0.2,
-                overlap_width_ratio=0.2,
-            )
+            result = model.predict(img_bytes).json()
+            predictions = result["predictions"]
 
-            # Draw boxes on a copy
-            annotated_img = image_pil.copy()
-            draw = ImageDraw.Draw(annotated_img)
+            # Filter by threshold
+            filtered = [p for p in predictions if p["confidence"] >= confidence_threshold]
+
+            # Draw boxes
+            annotated = image_pil.copy()
+            draw = ImageDraw.Draw(annotated)
             font = ImageFont.load_default()
-
             label_counts = {}
-            for det in prediction.object_prediction_list:
-                box = det.bbox.to_xyxy()  # [x1, y1, x2, y2]
-                class_name = det.category.name
-                score = det.score.value
-                label = f"{class_name} ({score:.2f})"
 
-                draw.rectangle(box, outline="lime", width=3)
-                draw.text((box[0], box[1] - 10), label, fill="lime", font=font)
+            for pred in filtered:
+                x, y, w, h = pred["x"], pred["y"], pred["width"], pred["height"]
+                cls = pred["class"]
+                conf = pred["confidence"]
+                label = f"{cls} ({conf:.2f})"
 
-                # Tally counts
-                label_counts[class_name] = label_counts.get(class_name, 0) + 1
+                # Calculate box corners
+                x1, y1 = x - w / 2, y - h / 2
+                x2, y2 = x + w / 2, y + h / 2
+                draw.rectangle([x1, y1, x2, y2], outline="lime", width=3)
+                draw.text((x1, y1 - 10), label, fill="lime", font=font)
 
-            # Show final image
-            st.image(annotated_img, caption="Detections", use_container_width=True)
+                label_counts[cls] = label_counts.get(cls, 0) + 1
+
+            # Show image
+            st.image(annotated, caption="Detections", use_container_width=True)
 
             # Show detection summary
             if label_counts:
@@ -70,11 +67,11 @@ if uploaded:
                 st.table(df_summary)
 
             # Download button
-            img_buffer = BytesIO()
-            annotated_img.save(img_buffer, format="PNG")
+            out_buffer = BytesIO()
+            annotated.save(out_buffer, format="PNG")
             st.download_button(
                 label="📥 Download Annotated Image",
-                data=img_buffer.getvalue(),
+                data=out_buffer.getvalue(),
                 file_name="detections.png",
                 mime="image/png"
             )
