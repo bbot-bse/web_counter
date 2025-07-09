@@ -15,7 +15,7 @@ model = project.version(11).model                       # Replace with your vers
 # Upload file
 uploaded_file = st.file_uploader("Choose an image", type=["jpg", "jpeg", "png"])
 if uploaded_file:
-    st.image(uploaded_file, caption="Uploaded Image", use_column_width=True)
+    st.image(uploaded_file, caption="Uploaded Image", use_container_width=True)
     image_bytes = uploaded_file.read()
     
     with st.spinner("Running detection..."):
